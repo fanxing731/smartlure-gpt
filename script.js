@@ -1,1 +1,1 @@
-// GPT logic placeholder
+// JavaScript logic here

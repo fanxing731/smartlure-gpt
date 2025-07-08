@@ -1,1 +1,1 @@
-// weather API handler
+// weather related JS
