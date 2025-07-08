@@ -1,13 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>SmartLure GPT</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <h1>SmartLure GPT Loaded</h1>
+  <div id="app">
+    <label for="weather">Weather:</label>
+    <select id="weather">
+      <option value="sunny">Sunny</option>
+      <option value="cloudy">Cloudy</option>
+      <option value="rainy">Rainy</option>
+    </select>
+
+    <label for="temperature">Temperature (°C):</label>
+    <input type="number" id="temperature" value="15">
+
+    <label for="location">Location:</label>
+    <input type="text" id="location" value="Toronto">
+
+    <button onclick="getRecommendation()">Get Bait Recommendation</button>
+
+    <div id="result"></div>
+  </div>
   <script src="script.js"></script>
 </body>
 </html>

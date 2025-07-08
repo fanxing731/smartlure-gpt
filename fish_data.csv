@@ -1,2 +1,6 @@
-location,weather,lure
-Lake,sunny,spinnerbait
+Location,Fish,Preferred_Lure
+Toronto,Lake Trout,Heavy Spoon
+Toronto,Bass,Jig
+Toronto,Pike,Spinnerbait
+Vancouver,Salmon,Spoon
+Vancouver,Trout,Soft Swimbait
