@@ -1,1 +1,1 @@
-// You can add external weather API here if needed
+// placeholder for weather code

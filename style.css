@@ -1,13 +1,1 @@
-body {
-  font-family: Arial, sans-serif;
-  padding: 20px;
-}
-#app {
-  margin-top: 20px;
-}
-label {
-  margin-right: 10px;
-}
-input, select {
-  margin-bottom: 10px;
-}
+body { font-family: Arial; }
