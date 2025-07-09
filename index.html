@@ -118,7 +118,7 @@ Suggest the best species to target **today**, and the recommended lure and strat
           })
         });
         const gptData = await gptRes.json();
-        aiText = JSON.stringify(gptData, null, 2);
+        aiText = gptData.choices[0].message.content.trim();
       } catch (e) {
         aiText = "Failed to retrieve GPT response.";
       }
