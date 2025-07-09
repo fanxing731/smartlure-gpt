@@ -61,8 +61,6 @@
       { fish: "Arctic grayling", minLat: 62, maxLat: 68 }
     ];
 
-    const API_KEY = "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";
-
     function getFishByLat(lat) {
       return fishData.filter(f => lat >= f.minLat && lat <= f.maxLat).map(f => f.fish);
     }
@@ -105,12 +103,14 @@ Suggest the best species to target **today**, and the recommended lure and strat
 
       let aiText = "Waiting for GPT response...";
       try {
-        const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + API_KEY
-          },
+        const gptRes = await fetch("/api/gpt", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    model: "gpt-3.5-turbo",
+    messages: [{ role: "user", content: prompt }],
+    temperature: 0.7
+  }),
           body: JSON.stringify({
             model: "gpt-3.5-turbo",
             messages: [{ role: "user", content: prompt }],
