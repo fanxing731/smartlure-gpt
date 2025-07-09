@@ -1,39 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>SmartLure GPT</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SmartLure – AI Fishing Assistant</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
-    body { font-family: sans-serif; padding: 2rem; }
-    textarea { width: 100%; height: 100px; }
-    #output { margin-top: 1rem; white-space: pre-wrap; border: 1px solid #ccc; padding: 1rem; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f2f8ff;
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    input {
+      padding: 8px;
+      margin: 5px;
+      width: 150px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    .output {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    #map {
+      height: 400px;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
-  <h1>SmartLure GPT Recommender</h1>
-  <textarea id="prompt" placeholder="Describe your location, weather, etc..."></textarea><br>
-  <button onclick="recommend()">Get Recommendation</button>
-  <div id="output">🎯 AI Recommendation will appear here.</div>
+  <h1>🎣 SmartLure: AI Fishing Assistant</h1>
+  <p>Click the map or enter coordinates:</p>
+  <label>Latitude: <input type="number" id="lat" value="64.32" step="0.01"></label><br>
+  <label>Longitude: <input type="number" id="lon" value="-96.02" step="0.01"></label><br>
+  <button onclick="getRecommendation()">Get Recommendation</button>
+
+  <div id="map"></div>
+  <div class="output" id="output"></div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    async function recommend() {
-      const prompt = document.getElementById("prompt").value;
-      document.getElementById("output").innerText = "⏳ Requesting GPT...";
+    const fishData = [
+      { fish: "Arctic char", minLat: 62, maxLat: 81 },
+      { fish: "Lake trout", minLat: 57, maxLat: 73 },
+      { fish: "Arctic grayling", minLat: 62, maxLat: 68 }
+    ];
+
+    const API_KEY = "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";
+
+    function getFishByLat(lat) {
+      return fishData.filter(f => lat >= f.minLat && lat <= f.maxLat).map(f => f.fish);
+    }
+
+    async function getRecommendation() {
+      const lat = parseFloat(document.getElementById("lat").value);
+      const lon = parseFloat(document.getElementById("lon").value);
+      const fishList = getFishByLat(lat);
+
+      if (fishList.length === 0) {
+        document.getElementById("output").innerHTML = "No common fish species found at this latitude.";
+        return;
+      }
+
+      const weatherUrl = `https://wttr.in/${lat},${lon}?format=j1`;
+      let weatherData;
       try {
-        const res = await fetch("/api/gpt", {
+        const res = await fetch(weatherUrl);
+        weatherData = await res.json();
+      } catch (error) {
+        document.getElementById("output").innerHTML = "Failed to fetch weather data.";
+        return;
+      }
+
+      const temp = weatherData.current_condition[0].temp_C;
+      const wind = weatherData.current_condition[0].windspeedKmph;
+      const desc = weatherData.current_condition[0].weatherDesc[0].value;
+
+      const prompt = `
+You are a professional fishing guide.
+Given the following:
+- Latitude: ${lat}
+- Longitude: ${lon}
+- Temperature: ${temp}°C
+- Wind: ${wind} km/h
+- Weather: ${desc}
+- Fish species in this region: ${fishList.join(", ")}
+
+Suggest the best species to target **today**, and the recommended lure and strategy. Make it natural, helpful and concise. Do not list all fish — just one.`;
+
+      let aiText = "Waiting for GPT response...";
+      try {
+        const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + API_KEY
+          },
           body: JSON.stringify({
             model: "gpt-3.5-turbo",
-            messages: [{ role: "user", content: prompt }]
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.7
           })
         });
-        const data = await res.json();
-        document.getElementById("output").innerText =
-          data.choices?.[0]?.message?.content || JSON.stringify(data, null, 2);
+        const gptData = await gptRes.json();
+        aiText = JSON.stringify(gptData, null, 2);
       } catch (e) {
-        document.getElementById("output").innerText = "❌ Error: " + e.message;
+        aiText = "Failed to retrieve GPT response.";
       }
+
+      let outputHTML = `<h2>📍 Location: (${lat}, ${lon})</h2>`;
+      outputHTML += `<p>🌡️ Temp: ${temp}°C | 💨 Wind: ${wind} km/h | ☁️ ${desc}</p>`;
+      outputHTML += `<h3>🎯 AI Recommendation:</h3><p>${aiText}</p>`;
+      document.getElementById("output").innerHTML = outputHTML;
     }
+
+    const map = L.map('map').setView([64.32, -96.02], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const marker = L.marker([64.32, -96.02]).addTo(map);
+
+    map.on('click', function(e) {
+      const lat = e.latlng.lat.toFixed(4);
+      const lon = e.latlng.lng.toFixed(4);
+      document.getElementById("lat").value = lat;
+      document.getElementById("lon").value = lon;
+      marker.setLatLng(e.latlng);
+    });
   </script>
 </body>
 </html>
